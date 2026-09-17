@@ -8,13 +8,11 @@ import {
   Droplets, 
   Footprints, 
   Pill, 
-  FileText, 
-  RotateCcw,
-  Sparkles,
   Heart,
-  ChevronRight,
-  Calendar,
-  X
+  X,
+  Sparkles,
+  RotateCcw,
+  CheckCircle2
 } from 'lucide-react';
 import { Pet, CareLog, CareType } from '../types';
 
@@ -39,23 +37,38 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
   onToggleLog,
   onAddLog,
 }) => {
-  const [activeFilter, setActiveFilter] = useState<'all' | 'meal' | 'walk' | 'meds'>('all');
+  const [showAllPetsRoutine, setShowAllPetsRoutine] = useState(false);
   const [isQuickLogOpen, setIsQuickLogOpen] = useState(false);
 
   // Quick log form state
-  const [logType, setLogType] = useState<CareType>('meal');
+  const [logType, setLogType] = useState<CareType>('walk');
   const [logTitle, setLogTitle] = useState('');
   const [logDetail, setLogDetail] = useState('');
 
-  const currentPet = pets.find((p) => p.id === selectedPetId) || pets[0];
-  const petLogs = logs.filter((l) => l.petId === (currentPet?.id || ''));
-  const filteredLogs = activeFilter === 'all' 
-    ? petLogs 
-    : petLogs.filter((l) => l.type === activeFilter);
+  const currentPet = pets.find((p) => p.id === selectedPetId) || pets[0] || {
+    id: 'pet-1',
+    name: 'Biscuit',
+    species: 'dog',
+    breed: 'Golden Retriever',
+    ageYears: 3,
+    ageMonths: 2,
+    weight: 28.5,
+    weightUnit: 'lbs',
+    avatarUrl: '/src/assets/images/golden_retriever_photo_1789664976220.jpg',
+  };
 
-  const completedCount = petLogs.filter((l) => l.completed).length;
-  const totalCount = petLogs.length || 1;
-  const progressPercent = Math.round((completedCount / totalCount) * 100);
+  // Determine greeting based on current time
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Morning, Jordan!';
+    if (hour < 17) return 'Afternoon, Jordan!';
+    return 'Evening, Jordan!';
+  };
+
+  // Filter logs based on view all vs active pet
+  const displayedLogs = showAllPetsRoutine
+    ? logs
+    : logs.filter((l) => l.petId === currentPet.id);
 
   const handleCreateLog = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,10 +78,10 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
       petId: currentPet.id,
       type: logType,
       title: logTitle.trim(),
-      detail: logDetail.trim() || 'Logged via PetPals',
+      detail: logDetail.trim() || `Scheduled care for ${currentPet.name}`,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       date: 'Today',
-      completed: true,
+      completed: false,
     });
 
     setLogTitle('');
@@ -79,268 +92,288 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
   const getCareIcon = (type: CareType) => {
     switch (type) {
       case 'meal':
-        return <Utensils className="w-4 h-4 text-[#557A63]" />;
+        return <Utensils className="w-3.5 h-3.5 text-[#557A63]" />;
       case 'water':
-        return <Droplets className="w-4 h-4 text-[#4A839E]" />;
+        return <Droplets className="w-3.5 h-3.5 text-[#4A839E]" />;
       case 'walk':
-        return <Footprints className="w-4 h-4 text-[#A87948]" />;
+        return <Footprints className="w-3.5 h-3.5 text-[#A87948]" />;
       case 'meds':
-        return <Pill className="w-4 h-4 text-[#C16250]" />;
+        return <Pill className="w-3.5 h-3.5 text-[#C16250]" />;
       default:
-        return <Heart className="w-4 h-4 text-[#557A63]" />;
+        return <Heart className="w-3.5 h-3.5 text-[#557A63]" />;
     }
+  };
+
+  const getPetForLog = (petId: string) => {
+    return pets.find((p) => p.id === petId) || currentPet;
   };
 
   return (
     <div
-      id="petcare-dashboard-root"
-      className="flex flex-col w-full h-full min-h-[640px] bg-[#F7F5EE] text-[#222E26] overflow-y-auto"
+      id="dashboard-root"
+      className="flex flex-col w-full h-full min-h-[640px] bg-[#F7F4EC] text-[#1F2E23] overflow-y-auto select-none px-6 pt-4 pb-8"
     >
-      {/* Top Mobile App Header */}
-      <header
-        id="dashboard-header"
-        className="sticky top-0 z-30 bg-[#FAF8F2]/90 backdrop-blur-md px-5 pt-3 pb-3 border-b border-[#E7E3D8] flex items-center justify-between"
+      {/* Top iOS Status Bar Indicator */}
+      <div
+        id="status-bar-area"
+        className="flex items-center justify-between text-[#1F2E23] text-xs font-semibold py-1 mb-3"
       >
-        {/* Active Pet Selector */}
-        <div className="flex items-center space-x-2.5">
-          <div className="relative">
-            <img
-              src={currentPet?.avatarUrl}
-              alt={currentPet?.name}
-              referrerPolicy="no-referrer"
-              className="w-10 h-10 rounded-2xl object-cover border-2 border-[#557A63] shadow-[0_2px_8px_rgba(85,122,99,0.2)]"
-            />
-            <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-[#557A63] border-2 border-white rounded-full flex items-center justify-center">
-              <span className="w-1 h-1 bg-white rounded-full" />
-            </span>
+        <span className="font-bold text-[14px]">9:41</span>
+        <div className="flex items-center space-x-1.5 opacity-80">
+          <div className="flex items-end space-x-0.5 h-3">
+            <span className="w-0.5 h-1 bg-[#1F2E23] rounded-full" />
+            <span className="w-0.5 h-1.5 bg-[#1F2E23] rounded-full" />
+            <span className="w-0.5 h-2 bg-[#1F2E23] rounded-full" />
+            <span className="w-0.5 h-2.5 bg-[#1F2E23] rounded-full" />
           </div>
-
-          <div>
-            <div className="flex items-center space-x-1.5">
-              <h1 id="active-pet-name" className="font-extrabold text-[17px] text-[#202E24] tracking-tight">
-                {currentPet?.name}
-              </h1>
-              <span className="text-[11px] font-semibold text-[#5B7163] bg-[#E5EDE7] px-2 py-0.5 rounded-full capitalize flex items-center space-x-1">
-                <span>{currentPet?.species}</span>
-                {currentPet?.gender && (
-                  <span className="text-[10px] font-bold">
-                    {currentPet.gender === 'female' ? '♀' : '♂'}
-                  </span>
-                )}
-              </span>
-            </div>
-            <p className="text-xs text-[#627568] truncate max-w-[130px]">
-              {currentPet?.breed}
-            </p>
+          <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+            <path d="M12 4c4.08 0 7.78 1.66 10.46 4.35l-2.12 2.12C18.17 8.3 15.25 7 12 7s-6.17 1.3-8.34 3.47L1.54 8.35C4.22 5.66 7.92 4 12 4zm0 6c2.58 0 4.93 1.05 6.64 2.76l-2.12 2.12A6.48 6.48 0 0012 13c-1.8 0-3.43.73-4.52 1.88l-2.12-2.12C7.07 11.05 9.42 10 12 10zm0 6c1.1 0 2.05.45 2.83 1.17L12 20.35l-2.83-3.18C9.95 16.45 10.9 16 12 16z" />
+          </svg>
+          <div className="w-5 h-2.5 rounded-sm border border-[#1F2E23] p-0.5 flex items-center">
+            <div className="w-full h-full bg-[#1F2E23] rounded-xs" />
           </div>
         </div>
+      </div>
 
-        {/* Action Controls: Switch/Add & Return to Welcome */}
-        <div className="flex items-center space-x-1.5">
+      {/* Header Section Matching User Mockup */}
+      <header
+        id="dashboard-header-section"
+        className="flex items-center justify-between mt-1 mb-6"
+      >
+        <div>
+          <h1
+            id="greeting-title"
+            className="text-[26px] sm:text-[28px] font-extrabold text-[#1F2E23] tracking-tight leading-tight"
+          >
+            {getGreeting()}
+          </h1>
+          <p
+            id="greeting-subtitle"
+            className="text-[14px] text-[#718276] font-normal mt-0.5"
+          >
+            It's a perfect day for a walk.
+          </p>
+        </div>
+
+        {/* User Profile Avatar (Jordan) with Return to Welcome helper */}
+        <div className="relative group">
           <button
-            id="view-welcome-screen-btn"
+            type="button"
             onClick={onReturnToWelcome}
-            title="Preview Welcome Screen"
-            className="px-2.5 py-1.5 rounded-xl bg-[#EFECE3] hover:bg-[#E7E2D5] text-[#4A5D50] text-xs font-semibold flex items-center space-x-1 border border-[#DDD8CA] transition-colors cursor-pointer"
+            title="Jordan's Profile (Tap to view Welcome Onboarding)"
+            className="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-[0_2px_8px_rgba(40,55,45,0.08)] cursor-pointer hover:ring-2 hover:ring-[#557A63] transition-all flex-shrink-0"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Welcome View</span>
-          </button>
-
-          <button
-            id="header-add-pet-btn"
-            onClick={onOpenAddPet}
-            className="w-8 h-8 rounded-xl clay-btn-primary flex items-center justify-center cursor-pointer shadow-sm"
-            title="Add New Pet"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <img
+              src="/src/assets/images/jordan_avatar_photo_1789667660941.jpg"
+              alt="Jordan"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover"
+            />
           </button>
         </div>
       </header>
 
-      {/* Main Body */}
-      <main className="p-4 sm:p-5 space-y-4 flex-1">
-        {/* Pet Switcher Pills (if multiple pets) */}
-        {pets.length > 1 && (
-          <div className="flex items-center space-x-2 overflow-x-auto pb-1">
-            {pets.map((p) => {
-              const isSelected = p.id === currentPet?.id;
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => onSelectPet(p.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition-all cursor-pointer ${
-                    isSelected
-                      ? 'clay-pill-active'
-                      : 'clay-pill text-[#536559] hover:bg-[#EAE6DA]'
-                  }`}
-                >
-                  <img
-                    src={p.avatarUrl}
-                    alt={p.name}
-                    referrerPolicy="no-referrer"
-                    className="w-4 h-4 rounded-full object-cover"
-                  />
-                  <span>{p.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Pet Profile & Today's Progress Card (Claymorphic) */}
-        <section
-          id="pet-summary-claycard"
-          className="clay-card rounded-2xl p-4 sm:p-5 relative overflow-hidden"
+      {/* "Your Pack" Section Matching User Mockup */}
+      <section id="your-pack-section" className="mb-7">
+        <h2
+          id="your-pack-title"
+          className="text-[17px] font-bold text-[#1F2E23] tracking-tight mb-3.5"
         >
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-[#557A63]">Daily Routine</span>
-                <span className="text-xs text-[#7B8F82]">· Today</span>
-              </div>
-              <h2 className="text-lg font-bold text-[#202E24] mt-0.5">
-                {completedCount === totalCount ? 'All caught up! 🎉' : `${completedCount} of ${totalCount} completed`}
-              </h2>
-            </div>
+          Your Pack
+        </h2>
 
-            <div className="text-right">
-              <span className="text-2xl font-extrabold text-[#557A63]">{progressPercent}%</span>
-              <p className="text-[11px] text-[#697D70]">Care Score</p>
-            </div>
-          </div>
+        {/* Pet Avatars Row */}
+        <div
+          id="your-pack-row"
+          className="flex items-center space-x-5 overflow-x-auto pb-2 scrollbar-none"
+        >
+          {pets.map((pet) => {
+            const isSelected = pet.id === currentPet.id;
+            const isDog = pet.species === 'dog';
 
-          {/* Progress Bar with Soft Sage Fill */}
-          <div className="w-full h-2.5 bg-[#ECE8DC] rounded-full overflow-hidden mb-4 p-0.5 border border-[#E0DBCF]">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-              className="h-full bg-[#557A63] rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]"
-            />
-          </div>
-
-          {/* Vital Stats Chips */}
-          <div className="grid grid-cols-3 gap-2 pt-1 border-t border-[#ECE8DC]">
-            <div className="text-center py-1">
-              <span className="block text-[11px] text-[#718578] font-medium">Age</span>
-              <span className="text-xs font-bold text-[#223026]">
-                {currentPet?.ageYears}y {currentPet?.ageMonths > 0 ? `${currentPet?.ageMonths}m` : ''}
-              </span>
-            </div>
-            <div className="text-center py-1 border-x border-[#ECE8DC]">
-              <span className="block text-[11px] text-[#718578] font-medium">Weight</span>
-              <span className="text-xs font-bold text-[#223026]">
-                {currentPet?.weight} {currentPet?.weightUnit}
-              </span>
-            </div>
-            <div className="text-center py-1">
-              <span className="block text-[11px] text-[#718578] font-medium">Diet</span>
-              <span className="text-xs font-bold text-[#223026] truncate block max-w-[80px] mx-auto" title={currentPet?.dietaryNotes || 'Standard'}>
-                {currentPet?.dietaryNotes ? 'Special' : 'Standard'}
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* Today's Care Checklist */}
-        <section id="daily-checklist-section" className="space-y-2.5">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-sm font-bold text-[#27382D] flex items-center space-x-1.5">
-              <span>Today’s Care Checklist</span>
-            </h3>
-            <span className="text-xs text-[#6B7F72] font-medium">Tap to log</span>
-          </div>
-
-          <div className="space-y-2">
-            {petLogs.map((log) => {
-              return (
-                <div
-                  key={log.id}
-                  onClick={() => onToggleLog(log.id)}
-                  className={`clay-card rounded-xl p-3.5 flex items-center justify-between transition-all cursor-pointer ${
-                    log.completed
-                      ? 'bg-[#F9FAF8] border-[#D6E0D9] opacity-90'
-                      : 'hover:border-[#557A63]/60'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
-                        log.completed ? 'bg-[#E5EFE8] text-[#557A63]' : 'bg-[#EFECE3] text-[#576B5E]'
-                      }`}
-                    >
-                      {getCareIcon(log.type)}
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className={`text-sm font-bold tracking-tight ${
-                            log.completed ? 'line-through text-[#6C7E72]' : 'text-[#202E24]'
-                          }`}
-                        >
-                          {log.title}
-                        </span>
-                        <span className="text-[11px] text-[#778B7D] font-medium flex items-center">
-                          <Clock className="w-2.5 h-2.5 mr-0.5" />
-                          {log.time}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#677A6D]">{log.detail}</p>
+            return (
+              <div
+                key={pet.id}
+                onClick={() => onSelectPet(pet.id)}
+                className="flex flex-col items-center cursor-pointer group flex-shrink-0"
+              >
+                {/* Avatar with Dual-Tone Glowing Ring matching mockup */}
+                <div className="relative">
+                  <div
+                    className={`p-[2.5px] rounded-full transition-all duration-300 ${
+                      isDog
+                        ? 'bg-gradient-to-tr from-[#E5A84B] via-[#48956A] to-[#3B8259]'
+                        : 'bg-gradient-to-tr from-[#5DA6C4] via-[#48956A] to-[#3B8259]'
+                    } ${isSelected ? 'scale-105 shadow-[0_4px_14px_rgba(72,149,106,0.3)]' : 'opacity-90 hover:opacity-100'}`}
+                  >
+                    <div className="p-[2px] bg-[#F7F4EC] rounded-full">
+                      <img
+                        src={pet.avatarUrl}
+                        alt={pet.name}
+                        referrerPolicy="no-referrer"
+                        className="w-15 h-15 rounded-full object-cover"
+                      />
                     </div>
                   </div>
 
-                  {/* Tactile Checkbox Button */}
+                  {/* Active Indicator Dot */}
+                  {isSelected && (
+                    <motion.div
+                      layoutId="active-pet-indicator"
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#3B8259] ring-2 ring-[#F7F4EC]"
+                    />
+                  )}
+                </div>
+
+                {/* Pet Name */}
+                <span className="mt-2 text-[13.5px] font-bold text-[#1F2E23] text-center leading-none">
+                  {pet.name}
+                </span>
+
+                {/* Pet Age */}
+                <span className="mt-1 text-[11.5px] text-[#718276] font-medium text-center leading-none">
+                  {pet.ageYears}y {pet.ageMonths}m
+                </span>
+              </div>
+            );
+          })}
+
+          {/* "Add Pet" Dashed Action Button Matching Mockup */}
+          <div
+            onClick={onOpenAddPet}
+            className="flex flex-col items-center cursor-pointer group flex-shrink-0"
+          >
+            <div className="w-16.5 h-16.5 rounded-full border-2 border-dashed border-[#D5CEBF] flex items-center justify-center bg-[#FAF8F3]/60 group-hover:bg-[#F2ECE0] group-hover:border-[#557A63] transition-all">
+              <div className="w-8 h-8 rounded-full bg-[#E8E2D4] group-hover:bg-[#DFD8C8] text-[#5A6E61] flex items-center justify-center transition-colors">
+                <Plus className="w-4.5 h-4.5 stroke-[2.4]" />
+              </div>
+            </div>
+
+            <span className="mt-2 text-[13.5px] font-semibold text-[#1F2E23] text-center leading-none">
+              Add Pet
+            </span>
+            <span className="mt-1 text-[11.5px] text-transparent leading-none select-none">
+              &nbsp;
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* NOTE: "Ready for a walk?" box is EXCLUDED per user request */}
+
+      {/* "Today's Routine" Section Matching User Mockup */}
+      <section id="todays-routine-section" className="flex-1 flex flex-col">
+        {/* Section Header with "Today's Routine" and "VIEW ALL" */}
+        <div className="flex items-center justify-between mb-3.5">
+          <h2
+            id="routine-title"
+            className="text-[17px] font-bold text-[#1F2E23] tracking-tight"
+          >
+            Today's Routine
+          </h2>
+
+          <button
+            type="button"
+            onClick={() => setShowAllPetsRoutine(!showAllPetsRoutine)}
+            className="text-[11.5px] font-bold tracking-wider uppercase text-[#C88A3C] hover:text-[#A66E28] transition-colors cursor-pointer"
+          >
+            {showAllPetsRoutine ? 'ACTIVE PET' : 'VIEW ALL'}
+          </button>
+        </div>
+
+        {/* Routine Cards List */}
+        <div className="space-y-2.5">
+          {displayedLogs.map((log) => {
+            const petForLog = getPetForLog(log.petId);
+
+            return (
+              <motion.div
+                key={log.id}
+                layout
+                onClick={() => onToggleLog(log.id)}
+                className={`w-full rounded-[22px] bg-[#FAF8F3] border transition-all cursor-pointer p-4 flex items-center justify-between shadow-[0_2px_12px_rgba(40,55,45,0.02)] ${
+                  log.completed
+                    ? 'border-[#E2DDCF] bg-[#FAF8F3]/75 opacity-90'
+                    : 'border-[#EDE8DE] hover:border-[#627C6B]/50'
+                }`}
+              >
+                {/* Left Side: Checkbox & Routine Title */}
+                <div className="flex items-center space-x-3.5 min-w-0 flex-1 pr-3">
+                  {/* Round Checkbox Matching User Mockup */}
                   <div
-                    className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all ${
+                    className={`w-6.5 h-6.5 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
                       log.completed
-                        ? 'clay-btn-primary shadow-xs'
-                        : 'border-2 border-[#D7D2C4] bg-white hover:border-[#557A63]'
+                        ? 'bg-[#627C6B] text-white shadow-xs'
+                        : 'border-2 border-[#D5CEBF] bg-transparent hover:border-[#627C6B]'
                     }`}
                   >
-                    {log.completed && <Check className="w-4 h-4 stroke-[3] text-white" />}
+                    {log.completed && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                  </div>
+
+                  <div className="min-w-0">
+                    <span
+                      className={`block text-[14.5px] font-bold tracking-tight leading-snug truncate ${
+                        log.completed
+                          ? 'line-through text-[#819286]'
+                          : 'text-[#1F2E23]'
+                      }`}
+                    >
+                      {log.title}
+                    </span>
+                    <div className="flex items-center space-x-2 text-[12px] text-[#718276] mt-0.5">
+                      <span className="flex items-center">
+                        <Clock className="w-3 h-3 mr-1 opacity-70" />
+                        {log.time}
+                      </span>
+                      <span>·</span>
+                      <span className="truncate">{log.detail}</span>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </section>
 
-        {/* Quick Log Action Bar */}
-        <section id="quick-action-cta" className="pt-1">
+                {/* Right Side: Mini Pet Avatar Thumbnail matching mockup */}
+                <div className="relative flex-shrink-0">
+                  <img
+                    src={petForLog.avatarUrl}
+                    alt={petForLog.name}
+                    referrerPolicy="no-referrer"
+                    className="w-8.5 h-8.5 rounded-full object-cover border border-[#EDE8DE] shadow-2xs"
+                    title={petForLog.name}
+                  />
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Quick Add Routine Action */}
+        <div className="mt-4 pt-1 flex items-center space-x-3">
           <button
-            id="open-quick-log-btn"
+            type="button"
             onClick={() => setIsQuickLogOpen(true)}
-            className="w-full py-3 px-4 rounded-xl clay-btn-secondary font-bold text-sm flex items-center justify-center space-x-2 cursor-pointer"
+            className="flex-1 py-3 px-4 rounded-full bg-[#EAE5DA] hover:bg-[#E0DACD] text-[#34453A] font-bold text-[13.5px] flex items-center justify-center space-x-2 transition-all cursor-pointer shadow-2xs"
           >
-            <Plus className="w-4 h-4" />
-            <span>Log Care Event for {currentPet?.name}</span>
+            <Plus className="w-4 h-4 stroke-[2.4]" />
+            <span>Add Routine for {currentPet.name}</span>
           </button>
-        </section>
 
-        {/* Care Notes & Vet Information (Minimalist & Helpful) */}
-        <section id="vet-care-section" className="clay-card rounded-2xl p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#557A63]">Veterinary & Health</span>
-            <span className="text-xs text-[#557A63] font-semibold bg-[#EAF2ED] px-2 py-0.5 rounded-md">Up to date</span>
-          </div>
+          <button
+            type="button"
+            onClick={onReturnToWelcome}
+            title="Preview Welcome Screen"
+            className="w-11 h-11 rounded-full bg-[#EAE5DA] hover:bg-[#E0DACD] text-[#55675B] flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
+          >
+            <RotateCcw className="w-4.5 h-4.5" />
+          </button>
+        </div>
+      </section>
 
-          <p className="text-xs text-[#4A5D51] font-medium">
-            {currentPet?.vetName || 'Sage Hill Veterinary Care · Dr. Katherine Wells'}
-          </p>
-          <div className="flex items-center justify-between text-xs text-[#6E8174] pt-1 border-t border-[#EFECE3]">
-            <span>Routine checkup in 3 months</span>
-            <span className="font-semibold text-[#557A63]">{currentPet?.vetPhone || '(555) 382-9012'}</span>
-          </div>
-        </section>
-      </main>
-
-      {/* Quick Log Care Modal */}
+      {/* Quick Add Routine Modal */}
       <AnimatePresence>
         {isQuickLogOpen && (
           <div
             id="quick-log-backdrop"
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-[#202E24]/40 backdrop-blur-xs p-0 sm:p-4"
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-[#202E24]/35 backdrop-blur-xs p-0 sm:p-4"
             onClick={() => setIsQuickLogOpen(false)}
           >
             <motion.div
@@ -349,13 +382,19 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
               exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 26, stiffness: 280 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md bg-[#FAF9F5] border border-[#E3DFD4] rounded-t-[32px] sm:rounded-3xl shadow-xl p-6 text-[#202E24] space-y-4"
+              className="w-full max-w-md bg-[#FAF8F3] border border-[#EDE8DE] rounded-t-[32px] sm:rounded-3xl shadow-xl p-6 text-[#1F2E23] space-y-4"
             >
-              <div className="flex items-center justify-between border-b border-[#EAE6DB] pb-3">
-                <h3 className="font-bold text-lg text-[#202E24]">Log Care Activity</h3>
+              <div className="flex items-center justify-between border-b border-[#EDE8DE] pb-3">
+                <div>
+                  <h3 className="font-extrabold text-[17px] text-[#1F2E23]">
+                    Add Today's Routine
+                  </h3>
+                  <p className="text-xs text-[#718276]">For {currentPet.name}</p>
+                </div>
                 <button
+                  type="button"
                   onClick={() => setIsQuickLogOpen(false)}
-                  className="w-8 h-8 rounded-full bg-[#EDE9DE] flex items-center justify-center text-[#55675B]"
+                  className="w-8 h-8 rounded-full bg-[#EAE5DA] flex items-center justify-center text-[#55675B] hover:bg-[#E0DACD]"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -363,32 +402,30 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
 
               <form onSubmit={handleCreateLog} className="space-y-3.5 text-sm">
                 <div>
-                  <label className="block text-xs font-bold text-[#44574A] uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-bold text-[#44574A] uppercase tracking-wider mb-1.5">
                     Activity Type
                   </label>
                   <div className="grid grid-cols-4 gap-2">
                     {[
-                      { type: 'meal' as CareType, label: 'Meal', icon: <Utensils className="w-3.5 h-3.5" /> },
-                      { type: 'walk' as CareType, label: 'Walk', icon: <Footprints className="w-3.5 h-3.5" /> },
-                      { type: 'water' as CareType, label: 'Water', icon: <Droplets className="w-3.5 h-3.5" /> },
-                      { type: 'meds' as CareType, label: 'Meds', icon: <Pill className="w-3.5 h-3.5" /> },
+                      { type: 'walk' as CareType, label: 'Walk', icon: <Footprints className="w-4 h-4" /> },
+                      { type: 'meal' as CareType, label: 'Meal', icon: <Utensils className="w-4 h-4" /> },
+                      { type: 'water' as CareType, label: 'Water', icon: <Droplets className="w-4 h-4" /> },
+                      { type: 'meds' as CareType, label: 'Meds', icon: <Pill className="w-4 h-4" /> },
                     ].map((item) => (
                       <button
                         type="button"
                         key={item.type}
                         onClick={() => {
                           setLogType(item.type);
-                          if (!logTitle) {
-                            if (item.type === 'meal') setLogTitle('Afternoon Snack / Meal');
-                            else if (item.type === 'walk') setLogTitle('Park Walk (30 mins)');
-                            else if (item.type === 'water') setLogTitle('Fresh Water Bowl');
-                            else if (item.type === 'meds') setLogTitle('Heartworm preventative');
-                          }
+                          if (item.type === 'walk') setLogTitle(`Walk ${currentPet.name}`);
+                          else if (item.type === 'meal') setLogTitle('Afternoon Meal');
+                          else if (item.type === 'water') setLogTitle('Fresh Water Refill');
+                          else if (item.type === 'meds') setLogTitle('Daily Vitamins');
                         }}
                         className={`py-2 px-1 rounded-xl text-center flex flex-col items-center justify-center space-y-1 cursor-pointer transition-all ${
                           logType === item.type
-                            ? 'clay-pill-active font-semibold'
-                            : 'clay-pill text-[#536559]'
+                            ? 'bg-[#627C6B] text-white font-semibold shadow-xs'
+                            : 'bg-[#EAE5DA]/70 text-[#495B50] hover:bg-[#EAE5DA]'
                         }`}
                       >
                         {item.icon}
@@ -406,24 +443,24 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
                     id="log-title-input"
                     type="text"
                     required
-                    placeholder="e.g. Afternoon Kibble, 25m Neighborhood Walk"
+                    placeholder={`e.g. Walk ${currentPet.name}, Park Frisbee`}
                     value={logTitle}
                     onChange={(e) => setLogTitle(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-white border border-[#DDD8CB] focus:border-[#557A63] focus:outline-hidden text-[#202E24]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#DDD6C8] focus:border-[#627C6B] focus:outline-hidden text-[#1F2E23]"
                   />
                 </div>
 
                 <div>
                   <label htmlFor="log-detail-input" className="block text-xs font-bold text-[#44574A] uppercase tracking-wider mb-1">
-                    Details / Portion / Notes
+                    Details / Route / Notes
                   </label>
                   <input
                     id="log-detail-input"
                     type="text"
-                    placeholder="e.g. 1/2 cup, energetic mood, drank plenty of water"
+                    placeholder="e.g. 25m neighborhood stroll, sunny morning"
                     value={logDetail}
                     onChange={(e) => setLogDetail(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-white border border-[#DDD8CB] focus:border-[#557A63] focus:outline-hidden text-[#202E24]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#DDD6C8] focus:border-[#627C6B] focus:outline-hidden text-[#1F2E23]"
                   />
                 </div>
 
@@ -431,15 +468,15 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsQuickLogOpen(false)}
-                    className="flex-1 py-2.5 rounded-xl clay-btn-secondary font-bold text-xs cursor-pointer"
+                    className="flex-1 py-3 rounded-full bg-[#EAE5DA] text-[#4F6255] font-bold text-xs cursor-pointer hover:bg-[#E0DACD]"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2.5 rounded-xl clay-btn-primary font-bold text-xs cursor-pointer"
+                    className="flex-1 py-3 rounded-full bg-[#627C6B] text-white font-bold text-xs cursor-pointer hover:bg-[#546D5D] shadow-xs"
                   >
-                    Save Activity
+                    Save Routine
                   </button>
                 </div>
               </form>

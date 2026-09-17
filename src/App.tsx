@@ -11,7 +11,7 @@ export default function App() {
   const [previousScreen, setPreviousScreen] = useState<'welcome' | 'dashboard'>('welcome');
   const [pets, setPets] = useState<Pet[]>(() => {
     try {
-      const saved = localStorage.getItem('petpals_pets');
+      const saved = localStorage.getItem('petpals_pets_v2');
       return saved ? JSON.parse(saved) : INITIAL_PETS;
     } catch {
       return INITIAL_PETS;
@@ -19,12 +19,12 @@ export default function App() {
   });
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
-    return pets[0]?.id || 'pet-1';
+    return INITIAL_PETS[0]?.id || 'pet-1';
   });
 
   const [logs, setLogs] = useState<CareLog[]>(() => {
     try {
-      const saved = localStorage.getItem('petpals_logs');
+      const saved = localStorage.getItem('petpals_logs_v2');
       return saved ? JSON.parse(saved) : INITIAL_LOGS;
     } catch {
       return INITIAL_LOGS;
@@ -34,7 +34,7 @@ export default function App() {
   // Sync to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('petpals_pets', JSON.stringify(pets));
+      localStorage.setItem('petpals_pets_v2', JSON.stringify(pets));
     } catch {
       // ignore
     }
@@ -42,7 +42,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('petpals_logs', JSON.stringify(logs));
+      localStorage.setItem('petpals_logs_v2', JSON.stringify(logs));
     } catch {
       // ignore
     }
@@ -91,7 +91,7 @@ export default function App() {
         id: `log-${Date.now()}-3`,
         petId: newPet.id,
         type: 'walk',
-        title: newPet.species === 'dog' ? 'Daily Walk' : 'Play & Enrichment Time',
+        title: newPet.species === 'dog' ? `Walk ${newPet.name}` : `Play & Enrichment Time`,
         detail: newPet.species === 'dog' ? '30 min walk' : '15 min interactive toy play',
         time: '11:00 AM',
         date: 'Today',
