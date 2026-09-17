@@ -2,6 +2,11 @@ import { Pet, CareLog } from '../types';
 
 export const DEFAULT_AVATARS = [
   {
+    id: 'golden-retriever-photo',
+    name: 'Golden Retriever',
+    url: '/src/assets/images/golden_retriever_photo_1789664976220.jpg',
+  },
+  {
     id: 'clay-dog',
     name: 'Clay Golden Pup',
     url: '/src/assets/images/clay_pet_care_simple_1789625871275.jpg',
