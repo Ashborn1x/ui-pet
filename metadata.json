@@ -1,0 +1,6 @@
+{
+  "name": "PetPals – PetCare",
+  "description": "Mobile-first pet care and tracking app featuring refined claymorphism, subtle sage-green palette, and intuitive daily care logging.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

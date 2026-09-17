@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+/* Refined Claymorphism Styles */
+.clay-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(230, 226, 214, 0.7);
+  box-shadow: 
+    0 12px 24px -6px rgba(58, 77, 63, 0.06),
+    0 4px 8px -2px rgba(58, 77, 63, 0.03),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1.5px 1px 0 rgba(0, 0, 0, 0.02);
+}
+
+.clay-card-cream {
+  background: #FAF8F2;
+  border: 1px solid rgba(225, 220, 208, 0.8);
+  box-shadow: 
+    0 10px 20px -4px rgba(58, 77, 63, 0.05),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+.clay-btn-primary {
+  background-color: #557A63;
+  color: #FFFFFF;
+  box-shadow: 
+    0 8px 18px -3px rgba(65, 99, 78, 0.35),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -2px 2px 0 rgba(0, 0, 0, 0.15);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clay-btn-primary:hover {
+  background-color: #4C6E59;
+  box-shadow: 
+    0 6px 14px -2px rgba(65, 99, 78, 0.4),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.18);
+  transform: translateY(-0.5px);
+}
+
+.clay-btn-primary:active {
+  background-color: #43634F;
+  box-shadow: 
+    0 2px 5px 0 rgba(65, 99, 78, 0.25),
+    inset 0 2px 3px 0 rgba(0, 0, 0, 0.2);
+  transform: translateY(1px);
+}
+
+.clay-btn-secondary {
+  background-color: #EFECE3;
+  color: #384A3D;
+  border: 1px solid rgba(220, 214, 200, 0.7);
+  box-shadow: 
+    0 4px 10px -2px rgba(58, 77, 63, 0.05),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.03);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clay-btn-secondary:hover {
+  background-color: #E9E5DB;
+  transform: translateY(-0.5px);
+}
+
+.clay-btn-secondary:active {
+  background-color: #E2DDD2;
+  box-shadow: inset 0 2px 3px 0 rgba(0, 0, 0, 0.08);
+  transform: translateY(1px);
+}
+
+.clay-pill {
+  background: #FAF8F2;
+  box-shadow: 
+    0 3px 8px -1px rgba(58, 77, 63, 0.05),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.02);
+}
+
+.clay-pill-active {
+  background: #557A63;
+  color: white;
+  box-shadow: 
+    0 4px 12px -2px rgba(65, 99, 78, 0.3),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* Custom scrollbar for clean mobile feel */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 165, 154, 0.3);
+  border-radius: 9999px;
+}
