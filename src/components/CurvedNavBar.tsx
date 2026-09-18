@@ -4,11 +4,13 @@ import {
   Home, 
   Footprints, 
   PawPrint, 
+  Calendar,
+  Settings,
   User,
   Sparkles
 } from 'lucide-react';
 
-export type NavTabId = 'home' | 'routine' | 'pack' | 'profile';
+export type NavTabId = 'home' | 'pack' | 'routine' | 'profile';
 
 export interface NavTabItem {
   id: NavTabId;
@@ -20,19 +22,21 @@ interface CurvedNavBarProps {
   activeTab: NavTabId;
   onTabChange: (tab: NavTabId) => void;
   colorTheme?: 'sage' | 'terracotta' | 'coral';
+  variant?: 'minimal' | 'curved';
 }
 
 export const NAV_TABS: NavTabItem[] = [
   { id: 'home', label: 'Home', icon: Home },
-  { id: 'routine', label: 'Routine', icon: Footprints },
-  { id: 'pack', label: 'Your Pack', icon: PawPrint },
-  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'pack', label: 'Pets', icon: PawPrint },
+  { id: 'routine', label: 'Activity', icon: Calendar },
+  { id: 'profile', label: 'Settings', icon: Settings },
 ];
 
 export const CurvedNavBar: React.FC<CurvedNavBarProps> = ({
   activeTab,
   onTabChange,
   colorTheme = 'sage',
+  variant = 'minimal',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [barWidth, setBarWidth] = useState(352);
@@ -58,6 +62,54 @@ export const CurvedNavBar: React.FC<CurvedNavBarProps> = ({
 
     return () => observer.disconnect();
   }, []);
+
+  // Minimal Mobile Bar from reference screenshot
+  if (variant === 'minimal') {
+    return (
+      <div className="fixed bottom-3 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+        <div className="w-full max-w-[372px] bg-white/95 backdrop-blur-md rounded-[28px] border border-[#ECE7DC] shadow-[0_12px_28px_-6px_rgba(40,55,45,0.08),0_2px_6px_rgba(40,55,45,0.03)] px-3 py-2 flex items-center justify-around pointer-events-auto">
+          {NAV_TABS.map((tab) => {
+            const isActive = tab.id === activeTab;
+            const Icon = tab.icon;
+
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => onTabChange(tab.id)}
+                className="flex-1 flex flex-col items-center justify-center py-1.5 px-2 group cursor-pointer relative focus:outline-hidden"
+              >
+                <div className="relative flex flex-col items-center">
+                  <Icon 
+                    className={`w-5 h-5 transition-colors duration-200 ${
+                      isActive ? 'text-[#355A43] stroke-[2.3]' : 'text-[#87968B] group-hover:text-[#557A63] stroke-[1.9]'
+                    }`} 
+                  />
+                  <span 
+                    className={`text-[11px] mt-1 transition-colors duration-200 ${
+                      isActive ? 'text-[#1F2E23] font-bold' : 'text-[#87968B] group-hover:text-[#557A63] font-medium'
+                    }`}
+                  >
+                    {tab.label}
+                  </span>
+
+                  {isActive ? (
+                    <motion.div
+                      layoutId="activeTabUnderline"
+                      className="w-5 h-[2.5px] bg-[#456E55] rounded-full mt-1"
+                      transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                    />
+                  ) : (
+                    <div className="w-5 h-[2.5px] bg-transparent mt-1" />
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   const activeIndex = Math.max(
     0,
@@ -133,7 +185,7 @@ export const CurvedNavBar: React.FC<CurvedNavBarProps> = ({
   return (
     <div
       id="curved-notch-nav-container"
-      className="sticky bottom-3 z-40 w-full max-w-[360px] mx-auto px-2 pointer-events-auto"
+      className="sticky bottom-3 z-50 w-full max-w-[360px] mx-auto px-2 pointer-events-auto"
     >
       <div
         ref={containerRef}

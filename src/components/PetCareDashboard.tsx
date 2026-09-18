@@ -20,10 +20,14 @@ import {
   Bell,
   Phone,
   Palette,
-  PawPrint
+  PawPrint,
+  Search,
+  SlidersHorizontal,
+  Filter
 } from 'lucide-react';
 import { Pet, CareLog, CareType } from '../types';
 import { CurvedNavBar, NavTabId } from './CurvedNavBar';
+import { PetProfileView } from './PetProfileView';
 
 interface PetCareDashboardProps {
   pets: Pet[];
@@ -34,6 +38,7 @@ interface PetCareDashboardProps {
   logs: CareLog[];
   onToggleLog: (logId: string) => void;
   onAddLog: (newLog: Omit<CareLog, 'id'>) => void;
+  onUpdatePet?: (updatedPet: Pet) => void;
 }
 
 export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
@@ -45,12 +50,21 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
   logs,
   onToggleLog,
   onAddLog,
+  onUpdatePet,
 }) => {
-  const [currentTab, setCurrentTab] = useState<NavTabId>('home');
+  const [currentTab, setCurrentTab] = useState<NavTabId>('pack');
+  const [viewingPet, setViewingPet] = useState<Pet | null>(null);
+  const [profileMode, setProfileMode] = useState<'pet' | 'guardian'>('pet');
   const [colorTheme, setColorTheme] = useState<'sage' | 'terracotta' | 'coral'>('sage');
+  const [navBarStyle, setNavBarStyle] = useState<'minimal' | 'curved'>('minimal');
   const [showAllPetsRoutine, setShowAllPetsRoutine] = useState(false);
   const [isQuickLogOpen, setIsQuickLogOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  // Search & Filter state for "My Pets" view
+  const [petSearchQuery, setPetSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'healthy' | 'attention'>('all');
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
   // Quick log form state
   const [logType, setLogType] = useState<CareType>('walk');
@@ -58,14 +72,14 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
   const [logDetail, setLogDetail] = useState('');
 
   const currentPet = pets.find((p) => p.id === selectedPetId) || pets[0] || {
-    id: 'pet-1',
+    id: 'pet-biscuit',
     name: 'Biscuit',
     species: 'dog',
     breed: 'Golden Retriever',
     ageYears: 3,
     ageMonths: 2,
-    weight: 28.5,
-    weightUnit: 'lbs',
+    weight: 28.4,
+    weightUnit: 'kg',
     avatarUrl: '/src/assets/images/golden_retriever_photo_1789664976220.jpg',
   };
 
@@ -767,7 +781,7 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
           </motion.div>
         )}
 
-        {/* ================= VIEW 3: YOUR PACK ================= */}
+        {/* ================= VIEW 3: MY PETS (SCREENSHOT DESIGN) ================= */}
         {currentTab === 'pack' && (
           <motion.div
             key="view-pack"
@@ -775,83 +789,227 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="space-y-3.5"
+            className="space-y-3.5 pb-24"
           >
-            <div className="flex items-center justify-between mt-1 mb-2">
+            {/* Header: Title, Subtitle, and Circular Filter Button */}
+            <div className="flex items-start justify-between pt-1">
               <div>
-                <h1 className="text-[25px] font-extrabold text-[#1F2E23] tracking-tight">
-                  Your Pack
+                <h1 className="text-[27px] font-extrabold text-[#1B2B20] tracking-tight leading-tight">
+                  My Pets
                 </h1>
-                <p className="text-[13px] text-[#718276]">
-                  {pets.length} companions registered
+                <p className="text-[13px] text-[#718276] font-normal mt-0.5">
+                  Your furry friends, all in one place.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={onOpenAddPet}
-                className="px-3.5 py-1.5 rounded-full bg-[#557A63] text-white text-xs font-bold flex items-center space-x-1.5 shadow-xs hover:bg-[#43644F] cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Add Companion</span>
-              </button>
+
+              {/* Circular tactile filter button matching screenshot */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowFilterMenu(!showFilterMenu)}
+                  title="Filter Pets"
+                  className={`w-10 h-10 rounded-full border transition-all flex items-center justify-center cursor-pointer shadow-xs ${
+                    showFilterMenu || statusFilter !== 'all'
+                      ? 'bg-[#EAE5DA] border-[#557A63] text-[#1B2B20]'
+                      : 'bg-[#FAF7F0] border-[#E8E2D5] text-[#526558] hover:bg-[#F2ECE0]'
+                  }`}
+                >
+                  <SlidersHorizontal className="w-4 h-4 stroke-[2.2]" />
+                </button>
+
+                {/* Filter Popover */}
+                {showFilterMenu && (
+                  <div className="absolute right-0 top-12 z-30 w-48 bg-white rounded-2xl border border-[#EDE8DE] shadow-xl p-2 space-y-1">
+                    <p className="text-[10.5px] font-bold uppercase tracking-wider text-[#7A8C80] px-2.5 py-1">
+                      Filter by Status
+                    </p>
+                    {(['all', 'healthy', 'attention'] as const).map((filterOpt) => (
+                      <button
+                        key={filterOpt}
+                        type="button"
+                        onClick={() => {
+                          setStatusFilter(filterOpt);
+                          setShowFilterMenu(false);
+                        }}
+                        className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-semibold capitalize flex items-center justify-between cursor-pointer transition-colors ${
+                          statusFilter === filterOpt
+                            ? 'bg-[#E8F0EA] text-[#355A43]'
+                            : 'hover:bg-[#F7F4EC] text-[#55675A]'
+                        }`}
+                      >
+                        <span>
+                          {filterOpt === 'all'
+                            ? 'All Companions'
+                            : filterOpt === 'healthy'
+                            ? 'Healthy'
+                            : 'Needs Attention'}
+                        </span>
+                        {statusFilter === filterOpt && (
+                          <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Companion Cards */}
-            <div className="space-y-3">
-              {pets.map((pet) => {
-                const isSelected = pet.id === currentPet.id;
-                const petCareLogs = logs.filter((l) => l.petId === pet.id);
-                const completedCount = petCareLogs.filter((l) => l.completed).length;
+            {/* Pill Search Input */}
+            <div className="relative mt-1 mb-3">
+              <Search className="w-4 h-4 text-[#8A9B8F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={petSearchQuery}
+                onChange={(e) => setPetSearchQuery(e.target.value)}
+                placeholder="Search pets..."
+                className="w-full py-3 pl-10 pr-9 rounded-2xl bg-[#F5F1E8] border border-[#EAE3D6] text-[13.5px] text-[#1F2E23] placeholder-[#8A9B8F] focus:outline-hidden focus:ring-1 focus:ring-[#527763]/50 focus:border-[#527763] transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.025)]"
+              />
+              {petSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setPetSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#DDD6C9] flex items-center justify-center text-[#55675A] hover:bg-[#D0C8BA] cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
 
-                return (
-                  <div
-                    key={pet.id}
-                    onClick={() => onSelectPet(pet.id)}
-                    className={`p-4 rounded-[26px] border transition-all cursor-pointer ${
-                      isSelected
-                        ? 'border-[#557A63] bg-[#FAF8F3] shadow-[0_8px_20px_rgba(72,149,106,0.12),inset_0_1.5px_1.5px_rgba(255,255,255,0.95)] ring-1 ring-[#557A63]/30'
-                        : 'border-[#EDE8DE] bg-[#FAF8F3] opacity-90 hover:opacity-100'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3.5">
-                      <img
-                        src={pet.avatarUrl}
-                        alt={pet.name}
-                        className="w-16 h-16 rounded-2xl object-cover shadow-xs border border-white"
-                      />
-                      <div className="min-w-0 flex-1">
+            {/* Pet Cards with exact tactile geometry */}
+            <div className="space-y-3">
+              {pets
+                .filter((pet) => {
+                  const query = petSearchQuery.toLowerCase().trim();
+                  const matchesQuery =
+                    !query ||
+                    pet.name.toLowerCase().includes(query) ||
+                    pet.breed.toLowerCase().includes(query) ||
+                    pet.species.toLowerCase().includes(query);
+
+                  if (!matchesQuery) return false;
+
+                  const isAttention = pet.name === 'Milo' || pet.breed.toLowerCase().includes('shih tzu');
+                  if (statusFilter === 'healthy') return !isAttention;
+                  if (statusFilter === 'attention') return isAttention;
+                  return true;
+                })
+                .map((pet) => {
+                  const isSelected = pet.id === currentPet.id;
+                  const petCareLogs = logs.filter((l) => l.petId === pet.id);
+                  const completedCount = petCareLogs.filter((l) => l.completed).length;
+                  const isNeedsAttention = pet.name === 'Milo' || pet.breed.toLowerCase().includes('shih tzu');
+
+                  return (
+                    <div
+                      key={pet.id}
+                      onClick={() => {
+                        onSelectPet(pet.id);
+                        setViewingPet(pet);
+                      }}
+                      className={`relative p-3.5 sm:p-4 rounded-[26px] sm:rounded-[28px] border transition-all cursor-pointer flex items-center space-x-3.5 group ${
+                        isSelected
+                          ? 'bg-white border-[#527763]/50 shadow-[0_10px_26px_rgba(40,55,45,0.06),0_2px_6px_rgba(40,55,45,0.02)] ring-1.5 ring-[#527763]/35'
+                          : 'bg-white border-[#EDE7DC] shadow-[0_8px_22px_rgba(40,55,45,0.04),0_2px_6px_rgba(40,55,45,0.02)] hover:border-[#D6CFBF] hover:shadow-[0_10px_26px_rgba(40,55,45,0.07)]'
+                      }`}
+                    >
+                      {/* Left: Squircle Pet Avatar */}
+                      <div className="w-[82px] h-[82px] sm:w-[86px] sm:h-[86px] rounded-[22px] overflow-hidden flex-shrink-0 bg-[#EFE9DF] border border-[#EAE4D7] shadow-2xs">
+                        <img
+                          src={pet.avatarUrl}
+                          alt={pet.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+
+                      {/* Right: Info Details */}
+                      <div className="flex-1 min-w-0 pr-1">
+                        {/* Row 1: Name & Status Pill */}
                         <div className="flex items-center justify-between">
-                          <h3 className="text-[17px] font-extrabold text-[#1F2E23]">
+                          <h3 className="text-[17px] font-bold text-[#1F2E23] tracking-tight truncate">
                             {pet.name}
                           </h3>
-                          <span className="text-[11px] font-bold text-[#557A63] bg-[#E8F0EA] px-2.5 py-0.5 rounded-full capitalize">
-                            {pet.species}
-                          </span>
+
+                          {/* Status Pill matching screenshot */}
+                          {isNeedsAttention ? (
+                            <span className="bg-[#FDF2EA] text-[#B85820] text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center space-x-1.5 flex-shrink-0">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#E06424]" />
+                              <span>Needs Attention</span>
+                            </span>
+                          ) : (
+                            <span className="bg-[#E8F0EA] text-[#3E654C] text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center space-x-1.5 flex-shrink-0">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#467356]" />
+                              <span>Healthy</span>
+                            </span>
+                          )}
                         </div>
-                        <p className="text-[12.5px] text-[#718276] font-medium mt-0.5">
-                          {pet.breed} · {pet.ageYears}y {pet.ageMonths}m
+
+                        {/* Row 2: Breed */}
+                        <p className="text-[13px] text-[#718276] font-normal truncate mt-0.5">
+                          {pet.breed}
                         </p>
-                        <div className="flex items-center space-x-3 mt-2 text-[11.5px] text-[#55675A] font-semibold">
-                          <span>⚖️ {pet.weight} {pet.weightUnit}</span>
-                          <span>·</span>
-                          <span>✅ {completedCount}/{petCareLogs.length} Done</span>
+
+                        {/* Row 3: Preserved Details (weight lbs, age year, routine check) */}
+                        <div className="flex items-center space-x-3 sm:space-x-4 mt-2.5 text-[11.5px] sm:text-[12px] text-[#55675A] font-medium">
+                          {/* Lbs Metric */}
+                          <div className="flex items-center">
+                            <WeightIcon className="w-3.5 h-3.5 mr-1 text-[#718276]" />
+                            <span>{pet.weight} {pet.weightUnit}</span>
+                          </div>
+
+                          {/* Year / Age Metric */}
+                          <div className="flex items-center">
+                            <Calendar className="w-3.5 h-3.5 mr-1 text-[#718276]" />
+                            <span>
+                              {pet.ageYears} {pet.ageYears === 1 ? 'yr' : 'yrs'}
+                              {pet.ageMonths ? ` ${pet.ageMonths}m` : ''}
+                            </span>
+                          </div>
+
+                          {/* Routine Check Metric */}
+                          <div className="flex items-center text-[#3E654C] font-semibold">
+                            <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-[#467356]" />
+                            <span>{completedCount}/{petCareLogs.length || 3} Done</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
 
-              {/* Add Companion Banner */}
-              <button
-                type="button"
-                onClick={onOpenAddPet}
-                className="w-full p-4.5 rounded-[26px] border-2 border-dashed border-[#D2CABE] bg-[#FAF8F3]/60 hover:bg-[#F0EAE0] flex items-center justify-center space-x-2 text-[#55675A] font-bold text-sm cursor-pointer transition-all"
-              >
-                <Plus className="w-4.5 h-4.5 stroke-[2.4]" />
-                <span>Add Another Pet Companion</span>
-              </button>
+                      {/* Right: Chevron Arrow */}
+                      <ChevronRight className="w-4 h-4 text-[#BAC2BB] group-hover:text-[#527763] group-hover:translate-x-0.5 transition-all flex-shrink-0 ml-0.5" />
+                    </div>
+                  );
+                })}
+
+              {/* Empty state when search returns no match */}
+              {pets.filter((pet) => {
+                const query = petSearchQuery.toLowerCase().trim();
+                return (
+                  !query ||
+                  pet.name.toLowerCase().includes(query) ||
+                  pet.breed.toLowerCase().includes(query)
+                );
+              }).length === 0 && (
+                <div className="p-8 text-center rounded-[26px] bg-white border border-[#EDE8DE] text-[#718276]">
+                  <p className="text-sm font-semibold">No pets found matching "{petSearchQuery}"</p>
+                  <button
+                    type="button"
+                    onClick={() => setPetSearchQuery('')}
+                    className="mt-2 text-xs text-[#557A63] font-bold underline cursor-pointer"
+                  >
+                    Clear search query
+                  </button>
+                </div>
+              )}
             </div>
+
+            {/* Bottom Action Button: "+ Add a Pet" matching screenshot */}
+            <button
+              type="button"
+              onClick={onOpenAddPet}
+              className="w-full mt-3 py-3.5 px-6 rounded-2xl bg-[#527763] hover:bg-[#436450] active:scale-[0.99] text-white font-bold text-[14.5px] flex items-center justify-center space-x-2 shadow-[0_6px_20px_rgba(72,110,87,0.25)] transition-all cursor-pointer"
+            >
+              <Plus className="w-4.5 h-4.5 stroke-[2.5]" />
+              <span>Add a Pet</span>
+            </button>
           </motion.div>
         )}
 
@@ -872,6 +1030,34 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
               <p className="text-[13px] text-[#718276]">
                 Preferences, theme & emergency info
               </p>
+            </div>
+
+            {/* Active Pet Profile Card */}
+            <div
+              onClick={() => setViewingPet(currentPet)}
+              className="rounded-[26px] bg-white border border-[#4E7A5E]/40 p-4 shadow-[0_8px_22px_-4px_rgba(40,55,45,0.06)] flex items-center justify-between cursor-pointer hover:border-[#4E7A5E] hover:shadow-md transition-all group"
+            >
+              <div className="flex items-center space-x-3.5">
+                <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#EFE9DF] border border-[#EAE4D7] shadow-2xs flex-shrink-0">
+                  <img
+                    src={currentPet.avatarUrl}
+                    alt={currentPet.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[15px] font-extrabold text-[#1F2E23]">{currentPet.name}'s Profile</span>
+                    <span className="text-[10px] uppercase font-bold text-[#3E654C] bg-[#E8F0EA] px-2 py-0.5 rounded-full">
+                      View
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#718276] mt-0.5">
+                    {currentPet.breed} · {currentPet.weight} {currentPet.weightUnit || 'kg'} · {currentPet.ageYears}y {currentPet.ageMonths || 0}m
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-[#8A9B8F] group-hover:text-[#4E7A5E] group-hover:translate-x-0.5 transition-all flex-shrink-0" />
             </div>
 
             {/* Profile Card */}
@@ -968,6 +1154,39 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
               </div>
             </div>
 
+            {/* Navigation Bar Style Toggle */}
+            <div className="rounded-[26px] bg-[#FAF8F3] border border-[#EDE8DE] p-4.5 space-y-3 shadow-[0_8px_22px_-4px_rgba(40,55,45,0.04),inset_0_1.5px_1.5px_rgba(255,255,255,0.95)]">
+              <div>
+                <span className="text-xs font-bold text-[#1F2E23] block">Bottom Navigation Style</span>
+                <span className="text-[11px] text-[#718276]">Switch between the screenshot minimal bar or curved notch</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setNavBarStyle('minimal')}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    navBarStyle === 'minimal'
+                      ? 'bg-[#557A63] text-white border-[#557A63] shadow-xs'
+                      : 'bg-white text-[#55675A] border-[#EDE8DE] hover:bg-[#F5F2EA]'
+                  }`}
+                >
+                  Minimal Bar (Screenshot)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNavBarStyle('curved')}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    navBarStyle === 'curved'
+                      ? 'bg-[#557A63] text-white border-[#557A63] shadow-xs'
+                      : 'bg-white text-[#55675A] border-[#EDE8DE] hover:bg-[#F5F2EA]'
+                  }`}
+                >
+                  Curved Notch Bar
+                </button>
+              </div>
+            </div>
+
             {/* Quick Actions & Contact */}
             <div className="rounded-[26px] bg-[#FAF8F3] border border-[#EDE8DE] p-4.5 space-y-3 shadow-[0_8px_22px_-4px_rgba(40,55,45,0.04),inset_0_1.5px_1.5px_rgba(255,255,255,0.95)]">
               <div className="flex items-center justify-between">
@@ -1014,10 +1233,40 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
 
       {/* Persistent Floating Curved Notch Navigation Bar with Spring Animation */}
       <CurvedNavBar
-        activeTab={currentTab}
-        onTabChange={setCurrentTab}
+        activeTab={viewingPet ? 'profile' : currentTab}
+        onTabChange={(tab) => {
+          setViewingPet(null);
+          setCurrentTab(tab);
+        }}
         colorTheme={colorTheme}
+        variant={navBarStyle}
       />
+
+      {/* Full-Screen Pet Profile View (from uploaded screenshot) */}
+      <AnimatePresence>
+        {viewingPet && (
+          <motion.div
+            key={`pet-profile-overlay-${viewingPet.id}`}
+            initial={{ opacity: 0, x: 28 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 28 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="absolute inset-0 bg-white z-40 overflow-y-auto scrollbar-none flex flex-col"
+          >
+            <PetProfileView
+              pet={pets.find((p) => p.id === viewingPet.id) || viewingPet}
+              logs={logs}
+              onBack={() => setViewingPet(null)}
+              onUpdatePet={(updated) => {
+                if (onUpdatePet) onUpdatePet(updated);
+                setViewingPet(updated);
+              }}
+              onToggleLog={onToggleLog}
+              onAddLog={onAddLog}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Quick Add Routine Modal */}
       <AnimatePresence>

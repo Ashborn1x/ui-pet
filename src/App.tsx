@@ -11,7 +11,7 @@ export default function App() {
   const [previousScreen, setPreviousScreen] = useState<'welcome' | 'dashboard'>('welcome');
   const [pets, setPets] = useState<Pet[]>(() => {
     try {
-      const saved = localStorage.getItem('petpals_pets_v2');
+      const saved = localStorage.getItem('petpals_pets_v4');
       return saved ? JSON.parse(saved) : INITIAL_PETS;
     } catch {
       return INITIAL_PETS;
@@ -19,12 +19,12 @@ export default function App() {
   });
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
-    return INITIAL_PETS[0]?.id || 'pet-1';
+    return INITIAL_PETS[0]?.id || 'pet-biscuit';
   });
 
   const [logs, setLogs] = useState<CareLog[]>(() => {
     try {
-      const saved = localStorage.getItem('petpals_logs_v2');
+      const saved = localStorage.getItem('petpals_logs_v4');
       return saved ? JSON.parse(saved) : INITIAL_LOGS;
     } catch {
       return INITIAL_LOGS;
@@ -34,7 +34,7 @@ export default function App() {
   // Sync to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('petpals_pets_v2', JSON.stringify(pets));
+      localStorage.setItem('petpals_pets_v4', JSON.stringify(pets));
     } catch {
       // ignore
     }
@@ -42,11 +42,15 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('petpals_logs_v2', JSON.stringify(logs));
+      localStorage.setItem('petpals_logs_v4', JSON.stringify(logs));
     } catch {
       // ignore
     }
   }, [logs]);
+
+  const handleUpdatePet = (updatedPet: Pet) => {
+    setPets((prev) => prev.map((p) => (p.id === updatedPet.id ? updatedPet : p)));
+  };
 
   const handleOpenAddPet = (fromScreen: 'welcome' | 'dashboard') => {
     setPreviousScreen(fromScreen);
@@ -155,6 +159,7 @@ export default function App() {
           logs={logs}
           onToggleLog={handleToggleLog}
           onAddLog={handleAddNewLog}
+          onUpdatePet={handleUpdatePet}
         />
       )}
     </MobileFrame>
