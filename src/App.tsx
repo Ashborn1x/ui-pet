@@ -11,20 +11,33 @@ export default function App() {
   const [previousScreen, setPreviousScreen] = useState<'welcome' | 'dashboard'>('welcome');
   const [pets, setPets] = useState<Pet[]>(() => {
     try {
-      const saved = localStorage.getItem('petpals_pets_v4');
-      return saved ? JSON.parse(saved) : INITIAL_PETS;
+      const saved = localStorage.getItem('petpals_pets_v6');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // ensure default fields like activities, dietSchedules, healthRecords exist
+        return parsed.map((p: Pet) => {
+          const initialMatch = INITIAL_PETS.find((ip) => ip.id === p.id);
+          return {
+            ...p,
+            activities: p.activities || initialMatch?.activities || [],
+            dietSchedules: p.dietSchedules || initialMatch?.dietSchedules || [],
+            healthRecords: p.healthRecords || initialMatch?.healthRecords || [],
+          };
+        });
+      }
+      return INITIAL_PETS;
     } catch {
       return INITIAL_PETS;
     }
   });
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
-    return INITIAL_PETS[0]?.id || 'pet-biscuit';
+    return INITIAL_PETS[0]?.id || 'pet-oliver';
   });
 
   const [logs, setLogs] = useState<CareLog[]>(() => {
     try {
-      const saved = localStorage.getItem('petpals_logs_v4');
+      const saved = localStorage.getItem('petpals_logs_v6');
       return saved ? JSON.parse(saved) : INITIAL_LOGS;
     } catch {
       return INITIAL_LOGS;
@@ -34,7 +47,7 @@ export default function App() {
   // Sync to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('petpals_pets_v4', JSON.stringify(pets));
+      localStorage.setItem('petpals_pets_v6', JSON.stringify(pets));
     } catch {
       // ignore
     }
@@ -42,7 +55,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('petpals_logs_v4', JSON.stringify(logs));
+      localStorage.setItem('petpals_logs_v6', JSON.stringify(logs));
     } catch {
       // ignore
     }

@@ -23,7 +23,12 @@ import {
   PawPrint,
   Search,
   SlidersHorizontal,
-  Filter
+  Filter,
+  Cat,
+  Dog,
+  Activity,
+  Scale,
+  SquarePen
 } from 'lucide-react';
 import { Pet, CareLog, CareType } from '../types';
 import { CurvedNavBar, NavTabId } from './CurvedNavBar';
@@ -61,25 +66,20 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
   const [isQuickLogOpen, setIsQuickLogOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  // Search & Filter state for "My Pets" view
-  const [petSearchQuery, setPetSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'healthy' | 'attention'>('all');
-  const [showFilterMenu, setShowFilterMenu] = useState(false);
-
   // Quick log form state
   const [logType, setLogType] = useState<CareType>('walk');
   const [logTitle, setLogTitle] = useState('');
   const [logDetail, setLogDetail] = useState('');
 
   const currentPet = pets.find((p) => p.id === selectedPetId) || pets[0] || {
-    id: 'pet-biscuit',
-    name: 'Biscuit',
+    id: 'pet-oliver',
+    name: 'Oliver',
     species: 'dog',
-    breed: 'Golden Retriever',
-    ageYears: 3,
-    ageMonths: 2,
-    weight: 28.4,
-    weightUnit: 'kg',
+    breed: 'Golden Retriever Mix',
+    ageYears: 2,
+    ageMonths: 4,
+    weight: 28.5,
+    weightUnit: 'lbs',
     avatarUrl: '/src/assets/images/golden_retriever_photo_1789664976220.jpg',
   };
 
@@ -89,6 +89,25 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
     if (hour < 12) return 'Morning, Jordan!';
     if (hour < 17) return 'Afternoon, Jordan!';
     return 'Evening, Jordan!';
+  };
+
+  // Cute Claymorphism Dog Greeting State & Interactive Phrases
+  const CLAY_DOG_GREETINGS = [
+    "Woof! It's a paw-fect day for a walk! 🐾",
+    "Tail wags for you! Ready for today's adventures? 🐕",
+    "Did you know? You're our favorite human! ✨",
+    "Sniffing around... looks like great times ahead! 🎾",
+    "Belly rubs and healthy treats make the best day! 🦴",
+  ];
+  const [clayDogGreetingIndex, setClayDogGreetingIndex] = useState(0);
+  const [clayDogBounceKey, setClayDogBounceKey] = useState(0);
+  const [showPawBurst, setShowPawBurst] = useState(false);
+
+  const handleClayDogTap = () => {
+    setClayDogGreetingIndex((prev) => (prev + 1) % CLAY_DOG_GREETINGS.length);
+    setClayDogBounceKey((prev) => prev + 1);
+    setShowPawBurst(true);
+    setTimeout(() => setShowPawBurst(false), 900);
   };
 
   // Filter logs for active pet and for all pack
@@ -202,41 +221,33 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
             transition={{ duration: 0.2 }}
             className="space-y-3.5"
           >
-            {/* Header Bar: Greeting & Jordan's Profile */}
-            <header
-              id="dashboard-header-section"
-              className="flex items-center justify-between mt-1 mb-3"
-            >
-              <div>
-                <h1
-                  id="greeting-title"
-                  className="text-[25px] sm:text-[27px] font-extrabold text-[#1F2E23] tracking-tight leading-tight"
-                >
-                  {getGreeting()}
-                </h1>
-                <p
-                  id="greeting-subtitle"
-                  className="text-[13.5px] text-[#718276] font-normal mt-0.5"
-                >
-                  It's a perfect day for a walk.
-                </p>
+            {/* Top Utility Bar: Date & Profile Shortcut */}
+            <div className="flex items-center justify-between mt-0.5 mb-2">
+              <div className="flex items-center space-x-2">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#557A63] bg-[#E5EDE7] px-2.5 py-0.5 rounded-full flex items-center space-x-1.5">
+                  <PawPrint className="w-3 h-3 text-[#557A63]" />
+                  <span>PetPals Daily</span>
+                </span>
+                <span className="text-[11.5px] text-[#8A9B8F] font-semibold">
+                  {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                </span>
               </div>
 
-              {/* Profile Avatar with Tactile Clay Ring */}
+              {/* Action Buttons */}
               <div className="flex items-center space-x-2">
                 <button
                   type="button"
                   onClick={onReturnToWelcome}
                   title="Preview Welcome Screen"
-                  className="w-9 h-9 rounded-full bg-[#EAE5DA] hover:bg-[#DFD9CC] text-[#55675B] flex items-center justify-center transition-all cursor-pointer shadow-[0_2px_6px_rgba(40,55,45,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)]"
+                  className="w-8.5 h-8.5 rounded-full bg-[#EAE5DA] hover:bg-[#DFD9CC] text-[#55675B] flex items-center justify-center transition-all cursor-pointer shadow-[0_2px_6px_rgba(40,55,45,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)]"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-3.5 h-3.5" />
                 </button>
 
                 <div
                   onClick={() => setCurrentTab('profile')}
                   title="Jordan's Profile"
-                  className="w-11 h-11 rounded-full overflow-hidden border-2 border-white shadow-[0_4px_12px_rgba(40,55,45,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] flex-shrink-0 bg-[#E8E2D4] cursor-pointer"
+                  className="w-9.5 h-9.5 rounded-full overflow-hidden border-2 border-white shadow-[0_4px_12px_rgba(40,55,45,0.08),inset_0_1px_2px_rgba(255,255,255,0.9)] flex-shrink-0 bg-[#E8E2D4] cursor-pointer hover:ring-2 hover:ring-[#557A63]/40 transition-all"
                 >
                   <img
                     src="/src/assets/images/jordan_avatar_photo_1789667660941.jpg"
@@ -244,6 +255,111 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Cute Claymorphism Dog Greeting Banner */}
+            <header
+              id="dashboard-header-section"
+              className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#FFFDF9] via-[#FAF6ED] to-[#F4EEE2] border border-[#EAE3D5] p-4 sm:p-4.5 shadow-[0_10px_26px_-4px_rgba(50,60,50,0.06),inset_0_2px_3px_rgba(255,255,255,0.95)] transition-all mb-1"
+            >
+              {/* Subtle warm decorative background blobs */}
+              <div className="absolute -top-6 -right-6 w-28 h-28 bg-[#F5EAD4]/50 rounded-full blur-xl pointer-events-none" />
+              <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-[#E2ECE4]/60 rounded-full blur-xl pointer-events-none" />
+
+              <div className="relative z-10 flex items-center justify-between gap-3">
+                {/* Left Side: Greeting & Clay Speech Bubble */}
+                <div className="flex-1 min-w-0 pr-1">
+                  <div className="flex items-center space-x-1.5 mb-1">
+                    <span className="w-2 h-2 rounded-full bg-[#527763] animate-pulse" />
+                    <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-[#688070]">
+                      Active Companion Guide
+                    </span>
+                  </div>
+
+                  <h1
+                    id="greeting-title"
+                    className="text-[22px] sm:text-[24px] font-extrabold text-[#1F2E23] tracking-tight leading-tight"
+                  >
+                    {getGreeting()}
+                  </h1>
+
+                  {/* Tactile Clay Speech Bubble */}
+                  <div
+                    onClick={handleClayDogTap}
+                    title="Tap to hear another cute greeting!"
+                    className="relative mt-2.5 p-2.5 sm:p-3 rounded-2xl bg-white/95 backdrop-blur-xs border border-[#E8E0D1] shadow-[0_3px_10px_rgba(40,55,45,0.04),inset_0_1px_1px_rgba(255,255,255,0.9)] cursor-pointer group hover:border-[#527763]/50 transition-all active:scale-[0.98]"
+                  >
+                    <p className="text-[12.5px] sm:text-[13px] font-medium text-[#3A4E40] leading-snug">
+                      "{CLAY_DOG_GREETINGS[clayDogGreetingIndex]}"
+                    </p>
+
+                    <div className="flex items-center justify-between mt-1.5 pt-1 border-t border-[#F0EBE0] text-[10px] font-bold text-[#8A9B8F]">
+                      <span className="flex items-center space-x-1 text-[#EDA63A] group-hover:text-[#D98E1C]">
+                        <Sparkles className="w-3 h-3" />
+                        <span>Tap pup to say hi!</span>
+                      </span>
+                      <span className="text-[#A2B1A6]">
+                        {clayDogGreetingIndex + 1}/{CLAY_DOG_GREETINGS.length}
+                      </span>
+                    </div>
+
+                    {/* Speech bubble pointer arrow */}
+                    <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 bg-white/95 border-t border-r border-[#E8E0D1] rotate-45" />
+                  </div>
+                </div>
+
+                {/* Right Side: Cute 3D Claymorphism Dog with Waving Paw */}
+                <div
+                  className="relative flex-shrink-0 cursor-pointer select-none"
+                  onClick={handleClayDogTap}
+                  title="Click me to wave and say hi!"
+                >
+                  <motion.div
+                    key={clayDogBounceKey}
+                    initial={{ scale: 0.92, y: 4 }}
+                    animate={{ scale: [1, 1.1, 0.98, 1], y: [0, -7, 1, 0], rotate: [0, 3, -3, 0] }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="relative w-20 h-20 sm:w-22 sm:h-22 rounded-[24px] overflow-hidden bg-[#EFE9DF] border-2.5 border-white shadow-[0_10px_22px_-4px_rgba(40,55,45,0.14),inset_0_2px_4px_rgba(255,255,255,0.95)]"
+                  >
+                    <img
+                      src="/src/assets/images/clay_dog_greeting_1789989165370.jpg"
+                      alt="Cute claymorphism dog greeting you"
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover pointer-events-none"
+                    />
+
+                    {/* Clay highlight rim */}
+                    <div className="absolute inset-0 rounded-[24px] pointer-events-none shadow-[inset_0_2px_3px_rgba(255,255,255,0.8),inset_0_-2px_4px_rgba(0,0,0,0.08)]" />
+
+                    {/* Animated Waving Paw Badge */}
+                    <motion.div
+                      animate={{ rotate: [0, 20, -12, 20, 0] }}
+                      transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+                      className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.15)] flex items-center justify-center text-[12px] border border-[#EDE7DC]"
+                    >
+                      👋
+                    </motion.div>
+                  </motion.div>
+
+                  {/* Floating Paw / Love Burst Reaction */}
+                  <AnimatePresence>
+                    {showPawBurst && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 4, scale: 0.7 }}
+                        animate={{ opacity: 1, y: -26, scale: 1.15 }}
+                        exit={{ opacity: 0, y: -42, scale: 0.8 }}
+                        transition={{ duration: 0.65, ease: 'easeOut' }}
+                        className="absolute -top-3.5 left-1/2 -translate-x-1/2 pointer-events-none flex items-center space-x-1 text-[11px] font-extrabold text-[#EDA63A] bg-white/95 backdrop-blur-xs px-2.5 py-0.5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.1)] border border-[#F2E8D8] whitespace-nowrap z-20"
+                      >
+                        <Heart className="w-3 h-3 fill-[#EDA63A] text-[#EDA63A]" />
+                        <span>Woof! 🐾</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </header>
@@ -288,7 +404,10 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
                   return (
                     <div
                       key={pet.id}
-                      onClick={() => onSelectPet(pet.id)}
+                      onClick={() => {
+                        onSelectPet(pet.id);
+                        setViewingPet(pet);
+                      }}
                       className="flex flex-col items-center cursor-pointer group flex-shrink-0"
                     >
                       {/* Clay Ring Avatar */}
@@ -791,225 +910,143 @@ export const PetCareDashboard: React.FC<PetCareDashboardProps> = ({
             transition={{ duration: 0.2 }}
             className="space-y-3.5 pb-24"
           >
-            {/* Header: Title, Subtitle, and Circular Filter Button */}
+            {/* Header: Title, Subtitle, and + Add Pet Button (Matching Screenshot) */}
             <div className="flex items-start justify-between pt-1">
               <div>
-                <h1 className="text-[27px] font-extrabold text-[#1B2B20] tracking-tight leading-tight">
-                  My Pets
+                <h1 className="text-[26px] sm:text-[28px] font-extrabold text-[#1F2E23] tracking-tight leading-tight">
+                  My Pack
                 </h1>
-                <p className="text-[13px] text-[#718276] font-normal mt-0.5">
-                  Your furry friends, all in one place.
+                <p className="text-[13px] text-[#718276] font-medium mt-0.5">
+                  {pets.length} companions · Tap any pet to view health details
                 </p>
               </div>
 
-              {/* Circular tactile filter button matching screenshot */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowFilterMenu(!showFilterMenu)}
-                  title="Filter Pets"
-                  className={`w-10 h-10 rounded-full border transition-all flex items-center justify-center cursor-pointer shadow-xs ${
-                    showFilterMenu || statusFilter !== 'all'
-                      ? 'bg-[#EAE5DA] border-[#557A63] text-[#1B2B20]'
-                      : 'bg-[#FAF7F0] border-[#E8E2D5] text-[#526558] hover:bg-[#F2ECE0]'
-                  }`}
-                >
-                  <SlidersHorizontal className="w-4 h-4 stroke-[2.2]" />
-                </button>
-
-                {/* Filter Popover */}
-                {showFilterMenu && (
-                  <div className="absolute right-0 top-12 z-30 w-48 bg-white rounded-2xl border border-[#EDE8DE] shadow-xl p-2 space-y-1">
-                    <p className="text-[10.5px] font-bold uppercase tracking-wider text-[#7A8C80] px-2.5 py-1">
-                      Filter by Status
-                    </p>
-                    {(['all', 'healthy', 'attention'] as const).map((filterOpt) => (
-                      <button
-                        key={filterOpt}
-                        type="button"
-                        onClick={() => {
-                          setStatusFilter(filterOpt);
-                          setShowFilterMenu(false);
-                        }}
-                        className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-semibold capitalize flex items-center justify-between cursor-pointer transition-colors ${
-                          statusFilter === filterOpt
-                            ? 'bg-[#E8F0EA] text-[#355A43]'
-                            : 'hover:bg-[#F7F4EC] text-[#55675A]'
-                        }`}
-                      >
-                        <span>
-                          {filterOpt === 'all'
-                            ? 'All Companions'
-                            : filterOpt === 'healthy'
-                            ? 'Healthy'
-                            : 'Needs Attention'}
-                        </span>
-                        {statusFilter === filterOpt && (
-                          <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {/* + Add Pet Pill Button */}
+              <button
+                type="button"
+                onClick={onOpenAddPet}
+                className="bg-[#244633] hover:bg-[#1A3426] text-white text-[12.5px] font-bold px-3.5 py-1.5 rounded-full flex items-center space-x-1.5 shadow-sm active:scale-95 transition-all cursor-pointer flex-shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Add Pet</span>
+              </button>
             </div>
 
-            {/* Pill Search Input */}
-            <div className="relative mt-1 mb-3">
-              <Search className="w-4 h-4 text-[#8A9B8F] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={petSearchQuery}
-                onChange={(e) => setPetSearchQuery(e.target.value)}
-                placeholder="Search pets..."
-                className="w-full py-3 pl-10 pr-9 rounded-2xl bg-[#F5F1E8] border border-[#EAE3D6] text-[13.5px] text-[#1F2E23] placeholder-[#8A9B8F] focus:outline-hidden focus:ring-1 focus:ring-[#527763]/50 focus:border-[#527763] transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.025)]"
-              />
-              {petSearchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setPetSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#DDD6C9] flex items-center justify-center text-[#55675A] hover:bg-[#D0C8BA] cursor-pointer"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </div>
+            {/* Pet Cards matching screenshot */}
+            <div className="space-y-3 pt-1">
+              {pets.map((pet) => {
+                const isSelected = pet.id === currentPet.id;
+                const isCat = pet.species === 'cat';
+                const isDog = pet.species === 'dog';
 
-            {/* Pet Cards with exact tactile geometry */}
-            <div className="space-y-3">
-              {pets
-                .filter((pet) => {
-                  const query = petSearchQuery.toLowerCase().trim();
-                  const matchesQuery =
-                    !query ||
-                    pet.name.toLowerCase().includes(query) ||
-                    pet.breed.toLowerCase().includes(query) ||
-                    pet.species.toLowerCase().includes(query);
-
-                  if (!matchesQuery) return false;
-
-                  const isAttention = pet.name === 'Milo' || pet.breed.toLowerCase().includes('shih tzu');
-                  if (statusFilter === 'healthy') return !isAttention;
-                  if (statusFilter === 'attention') return isAttention;
-                  return true;
-                })
-                .map((pet) => {
-                  const isSelected = pet.id === currentPet.id;
-                  const petCareLogs = logs.filter((l) => l.petId === pet.id);
-                  const completedCount = petCareLogs.filter((l) => l.completed).length;
-                  const isNeedsAttention = pet.name === 'Milo' || pet.breed.toLowerCase().includes('shih tzu');
-
-                  return (
-                    <div
-                      key={pet.id}
-                      onClick={() => {
-                        onSelectPet(pet.id);
-                        setViewingPet(pet);
-                      }}
-                      className={`relative p-3.5 sm:p-4 rounded-[26px] sm:rounded-[28px] border transition-all cursor-pointer flex items-center space-x-3.5 group ${
-                        isSelected
-                          ? 'bg-white border-[#527763]/50 shadow-[0_10px_26px_rgba(40,55,45,0.06),0_2px_6px_rgba(40,55,45,0.02)] ring-1.5 ring-[#527763]/35'
-                          : 'bg-white border-[#EDE7DC] shadow-[0_8px_22px_rgba(40,55,45,0.04),0_2px_6px_rgba(40,55,45,0.02)] hover:border-[#D6CFBF] hover:shadow-[0_10px_26px_rgba(40,55,45,0.07)]'
-                      }`}
-                    >
-                      {/* Left: Squircle Pet Avatar */}
-                      <div className="w-[82px] h-[82px] sm:w-[86px] sm:h-[86px] rounded-[22px] overflow-hidden flex-shrink-0 bg-[#EFE9DF] border border-[#EAE4D7] shadow-2xs">
+                return (
+                  <div
+                    key={pet.id}
+                    onClick={() => {
+                      onSelectPet(pet.id);
+                      setViewingPet(pet);
+                    }}
+                    className={`p-4 rounded-[24px] sm:rounded-[26px] transition-all cursor-pointer bg-white group ${
+                      isSelected
+                        ? 'border-2 border-[#EDA63A] shadow-[0_6px_20px_rgba(237,166,58,0.12),0_2px_8px_rgba(40,55,45,0.04)]'
+                        : 'border border-[#EDE8DE] shadow-[0_3px_10px_rgba(40,55,45,0.03)] hover:border-[#DDD6C8]'
+                    }`}
+                  >
+                    <div className="flex items-start space-x-3.5">
+                      {/* Left: Avatar with small circular species badge in corner */}
+                      <div className="relative flex-shrink-0 mt-0.5">
                         <img
                           src={pet.avatarUrl}
                           alt={pet.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          referrerPolicy="no-referrer"
+                          className="w-[58px] h-[58px] sm:w-[62px] sm:h-[62px] rounded-full object-cover border border-[#EAE3D6] shadow-xs"
                         />
-                      </div>
-
-                      {/* Right: Info Details */}
-                      <div className="flex-1 min-w-0 pr-1">
-                        {/* Row 1: Name & Status Pill */}
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-[17px] font-bold text-[#1F2E23] tracking-tight truncate">
-                            {pet.name}
-                          </h3>
-
-                          {/* Status Pill matching screenshot */}
-                          {isNeedsAttention ? (
-                            <span className="bg-[#FDF2EA] text-[#B85820] text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center space-x-1.5 flex-shrink-0">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#E06424]" />
-                              <span>Needs Attention</span>
-                            </span>
+                        <div className="absolute -bottom-1 -right-1 w-5.5 h-5.5 rounded-full bg-[#EBF4EE] border-2 border-white flex items-center justify-center shadow-2xs">
+                          {isCat ? (
+                            <Cat className="w-3 h-3 stroke-[2.2] text-[#3D694E]" />
+                          ) : isDog ? (
+                            <Dog className="w-3 h-3 stroke-[2.2] text-[#3D694E]" />
                           ) : (
-                            <span className="bg-[#E8F0EA] text-[#3E654C] text-[11px] font-semibold px-2.5 py-0.5 rounded-full flex items-center space-x-1.5 flex-shrink-0">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#467356]" />
-                              <span>Healthy</span>
-                            </span>
+                            <PawPrint className="w-3 h-3 stroke-[2.2] text-[#3D694E]" />
                           )}
                         </div>
+                      </div>
 
-                        {/* Row 2: Breed */}
-                        <p className="text-[13px] text-[#718276] font-normal truncate mt-0.5">
+                      {/* Right: Content details */}
+                      <div className="flex-1 min-w-0">
+                        {/* Top row: Name + PRIMARY badge + Chevron */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2 min-w-0">
+                            <h3 className="text-[17px] font-extrabold text-[#1F2E23] tracking-tight truncate">
+                              {pet.name}
+                            </h3>
+                            {isSelected && (
+                              <span className="text-[10px] font-extrabold text-[#2F6B4F] bg-[#E3EFE7] px-2 py-0.5 rounded-md uppercase tracking-wider flex-shrink-0">
+                                PRIMARY
+                              </span>
+                            )}
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-[#A8B7AD] group-hover:text-[#527763] group-hover:translate-x-0.5 transition-all flex-shrink-0 ml-1" />
+                        </div>
+
+                        {/* Second row: Breed */}
+                        <p className="text-[13px] text-[#8C7A6B] font-medium mt-0.5 truncate">
                           {pet.breed}
                         </p>
 
-                        {/* Row 3: Preserved Details (weight lbs, age year, routine check) */}
-                        <div className="flex items-center space-x-3 sm:space-x-4 mt-2.5 text-[11.5px] sm:text-[12px] text-[#55675A] font-medium">
-                          {/* Lbs Metric */}
-                          <div className="flex items-center">
-                            <WeightIcon className="w-3.5 h-3.5 mr-1 text-[#718276]" />
-                            <span>{pet.weight} {pet.weightUnit}</span>
-                          </div>
+                        {/* Thin horizontal divider */}
+                        <div className="border-t border-[#F2ECE3] my-2.5" />
 
-                          {/* Year / Age Metric */}
-                          <div className="flex items-center">
-                            <Calendar className="w-3.5 h-3.5 mr-1 text-[#718276]" />
+                        {/* Stats row: Pulse/Activity wave icon + Age & Scale icon + Weight */}
+                        <div className="flex items-center space-x-6 text-[12.5px] text-[#5A6E60] font-semibold">
+                          <div className="flex items-center space-x-1.5">
+                            <Activity className="w-3.5 h-3.5 text-[#7F9384] stroke-[2.2]" />
                             <span>
-                              {pet.ageYears} {pet.ageYears === 1 ? 'yr' : 'yrs'}
-                              {pet.ageMonths ? ` ${pet.ageMonths}m` : ''}
+                              {pet.ageYears}y {pet.ageMonths || 0}m
                             </span>
                           </div>
-
-                          {/* Routine Check Metric */}
-                          <div className="flex items-center text-[#3E654C] font-semibold">
-                            <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-[#467356]" />
-                            <span>{completedCount}/{petCareLogs.length || 3} Done</span>
+                          <div className="flex items-center space-x-1.5">
+                            <Scale className="w-3.5 h-3.5 text-[#7F9384] stroke-[2.2]" />
+                            <span>
+                              {pet.weight} {pet.weightUnit || 'lbs'}
+                            </span>
                           </div>
                         </div>
+
+                        {/* Action buttons row: Calendar & Health & Notes */}
+                        <div className="flex items-center space-x-2 mt-3 pt-0.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectPet(pet.id);
+                              setCurrentTab('routine');
+                            }}
+                            className="px-3 py-1.5 rounded-full bg-[#E5F1E8] hover:bg-[#D7EADE] text-[#2F6B4F] text-[12px] font-bold flex items-center space-x-1.5 transition-all cursor-pointer active:scale-95"
+                          >
+                            <Calendar className="w-3.5 h-3.5 stroke-[2.2]" />
+                            <span>Calendar</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectPet(pet.id);
+                              setViewingPet(pet);
+                            }}
+                            className="px-3 py-1.5 rounded-full bg-[#F5EFE6] hover:bg-[#ECE4D8] text-[#716355] text-[12px] font-bold flex items-center space-x-1.5 transition-all cursor-pointer active:scale-95"
+                          >
+                            <SquarePen className="w-3.5 h-3.5 stroke-[2.2]" />
+                            <span>Health & Notes</span>
+                          </button>
+                        </div>
                       </div>
-
-                      {/* Right: Chevron Arrow */}
-                      <ChevronRight className="w-4 h-4 text-[#BAC2BB] group-hover:text-[#527763] group-hover:translate-x-0.5 transition-all flex-shrink-0 ml-0.5" />
                     </div>
-                  );
-                })}
-
-              {/* Empty state when search returns no match */}
-              {pets.filter((pet) => {
-                const query = petSearchQuery.toLowerCase().trim();
-                return (
-                  !query ||
-                  pet.name.toLowerCase().includes(query) ||
-                  pet.breed.toLowerCase().includes(query)
+                  </div>
                 );
-              }).length === 0 && (
-                <div className="p-8 text-center rounded-[26px] bg-white border border-[#EDE8DE] text-[#718276]">
-                  <p className="text-sm font-semibold">No pets found matching "{petSearchQuery}"</p>
-                  <button
-                    type="button"
-                    onClick={() => setPetSearchQuery('')}
-                    className="mt-2 text-xs text-[#557A63] font-bold underline cursor-pointer"
-                  >
-                    Clear search query
-                  </button>
-                </div>
-              )}
+              })}
             </div>
-
-            {/* Bottom Action Button: "+ Add a Pet" matching screenshot */}
-            <button
-              type="button"
-              onClick={onOpenAddPet}
-              className="w-full mt-3 py-3.5 px-6 rounded-2xl bg-[#527763] hover:bg-[#436450] active:scale-[0.99] text-white font-bold text-[14.5px] flex items-center justify-center space-x-2 shadow-[0_6px_20px_rgba(72,110,87,0.25)] transition-all cursor-pointer"
-            >
-              <Plus className="w-4.5 h-4.5 stroke-[2.5]" />
-              <span>Add a Pet</span>
-            </button>
           </motion.div>
         )}
 

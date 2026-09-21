@@ -27,7 +27,7 @@ interface CurvedNavBarProps {
 
 export const NAV_TABS: NavTabItem[] = [
   { id: 'home', label: 'Home', icon: Home },
-  { id: 'pack', label: 'Pets', icon: PawPrint },
+  { id: 'pack', label: 'Pack', icon: PawPrint },
   { id: 'routine', label: 'Activity', icon: Calendar },
   { id: 'profile', label: 'Settings', icon: Settings },
 ];
